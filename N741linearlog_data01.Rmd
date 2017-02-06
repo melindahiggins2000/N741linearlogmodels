@@ -1,0 +1,177 @@
+---
+title: 'N741: Linear and Logistic Regression'
+author: "Melinda K. Higgins, PhD."
+date: "February 8, 2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+## Initial R Chunk - document and environment setup
+
+```{r setup, include=FALSE}
+# initial R chunk - set global knitr options
+# for now echo=TRUE so ALL R chunks will be shown
+# in your final output.
+#
+# When you are ready to do a final document NOT showing
+# the R code - run this with echo = FALSE instead.
+# TRY SETTING echo = FALSE and see how the report changes.
+knitr::opts_chunk$set(echo = TRUE)
+
+# In this inital R chunk, this is the best place to go ahead
+# and load ALL of the packages your R markdown document
+# will need. Then you can then not have to worry about adding 
+# the library() commands later on.
+# Tis also helps anyone reading your code to know
+# right at the beginning which packages are needed to
+# execute your code and compile your document. Thus, they
+# can go ahead and install the packages needed (which is done
+# outside of and BEFORE the RMD file is compiled)
+
+# packages needed for this RMD file
+library(tidyverse)
+```
+
+## Setup `CMC` dataset from UCI Data Repository
+
+We've covered this before, but the following code will read in the modified dataset and apply the factor level coding and labels.
+
+```{r}
+# The modified dataset is comma delimited but does have
+# slightly different column names from what we had before.
+cmc <- read_csv("cmcmodfinal.csv")
+```
+
+### Apply the codebook - variable names and coding used
+
+Apply variable names to the 10 columns of data in `cmc`.
+
+```{r}
+# since we want to reuse the code we had before, let's
+# assign the variables names we had before to the 10 columns
+names(cmc) <- c("WifeAge", "WifeEd", "HusbEd", "NumChild",
+                "WifeRel", "WifeWork", "HusbOcc", "SOLindex", 
+                "Media", "Contraceptive")
+```
+
+The next code chunk is to add the labels for "factor" levels for some of the variables (i.e. we are creating factors).
+
+Use the code below to update all of the variables.
+
+```{r}
+# update Wife Education as a factor, assign the 
+# levels and the labels for each level
+cmc$WifeEd <- factor(cmc$WifeEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+# do the remaining variables
+cmc$HusbEd <- factor(cmc$HusbEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+cmc$WifeRel <- factor(cmc$WifeRel,
+                      levels = c(0,1),
+                      labels = c("Non-Islam","Islam"))
+
+# Note: The documentation does state that
+# 0=yes and 1=no which seems incorrect...
+cmc$WifeWork <- factor(cmc$WifeWork,
+                       levels = c(0,1),
+                       labels = c("Yes","No"))
+
+cmc$HusbOcc <- factor(cmc$HusbOcc,
+                      levels = c(1,2,3,4),
+                      labels = c("1","2","3","4"))
+
+cmc$SOLindex <- factor(cmc$SOLindex,
+                       levels = c(1,2,3,4),
+                       labels = c("low","med low","med high","high"))
+
+cmc$Media <- factor(cmc$Media,
+                    levels = c(0,1),
+                    labels = c("Good","Not Good"))
+
+cmc$Contraceptive <- factor(cmc$Contraceptive,
+                            levels = c(1,2,3),
+                            labels = c("No-use","Long-term","Short-term"))
+```
+
+### Save a copy of the `cmc` dataset
+
+The `save()` command will save a copy of your dataset (the `cmc` object) as an `.RData` file which is easily read by R. The associated command to then read the data back in is the `load()` command. This will be helpful shortly when we run the demo in "R Commander" (`Rcmdr` package).
+
+```{r}
+# save the cmc dataset with the updated variable names
+# and associated factor levels and labeling applied.
+save(cmc, file="cmc.RData")
+```
+
+Do a quick `summary()` of the data - what do you notice?
+
+```{r}
+summary(cmc)
+```
+
+Issues noted:
+
+* The minimum value for Wife's Age is now -9 AND the max is 114 (outliers?)
+* Husband's education now lists 461 NA's (missing values)
+* There are also 461 missing values (NAs) for SOLindex and Media.
+
+NOTE: If you look at the dataset, you'll notice that the 461 subjects are the same ones missing Husband's education, SOL index and Media - but this is usually not the case - missing data is often intermittent and will vary across variables.
+
+```{r}
+hist(cmc$WifeAge)
+sum(cmc$WifeAge < 18)
+sum(cmc$WifeAge > 90)
+hist(cmc$WifeAge[cmc$WifeAge<20])
+
+cmc %>%
+  filter(WifeAge < 20) %>%
+  select(WifeAge) %>%
+  ggplot(aes(WifeAge)) +
+    geom_histogram(binwidth=1)
+
+cmc %>%
+  filter(WifeAge > 40) %>%
+  select(WifeAge) %>%
+  ggplot(aes(WifeAge)) +
+    geom_histogram(binwidth=1)
+  
+# add a column that removes these outliers
+# use the mutate() function, set ages < 16 and > 60 to missing NA
+cmc <- cmc %>% 
+  mutate(WifeAgeFix = ifelse(WifeAge < 16, NA,
+                             ifelse(WifeAge > 60, NA, WifeAge)))
+
+hist(cmc$WifeAgeFix)
+summary(cmc$WifeAgeFix)
+
+cmc %>%
+  ggplot(aes(WifeAgeFix)) +
+    geom_histogram(binwidth=1)
+
+summary(cmc$HusbEd)
+
+cmc %>%
+  ggplot(aes(HusbEd)) +
+    geom_bar()
+
+cmc %>%
+  filter(!is.na(HusbEd)) %>%
+  ggplot(aes(HusbEd)) +
+    geom_bar()
+
+
+save(cmc, file="cmc.RData")
+
+library(Rcmdr)
+```
+
+
+## wine data
+
+
