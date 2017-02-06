@@ -1,0 +1,88 @@
+---
+title: "Replace with Main Title"
+author: "Your Name"
+date: "AUTOMATIC"
+---
+
+
+```{r echo=FALSE, message=FALSE}
+# include this code chunk as-is to set options
+knitr::opts_chunk$set(comment=NA, prompt=TRUE)
+library(Rcmdr)
+library(car)
+library(RcmdrMisc)
+```
+
+
+```{r echo=FALSE}
+# include this code chunk as-is to enable 3D graphs
+library(rgl)
+knitr::knit_hooks$set(webgl = hook_webgl)
+```
+
+
+```{r}
+names(redwine) <- make.names(names(redwine))
+```
+
+```{r}
+LinearModel.1 <- lm(quality ~ alcohol + chlorides + citric.acid + density + 
+  fixed.acidity + free.sulfur.dioxide + pH + residual.sugar + sulphates + 
+  total.sulfur.dioxide + volatile.acidity, data=redwine)
+summary(LinearModel.1)
+```
+
+```{r}
+library(MASS, pos=15)
+```
+
+
+```{r}
+stepwise(LinearModel.1, direction='backward/forward', criterion='BIC')
+```
+
+```{r}
+summary(LinearModel.1)
+```
+
+```{r}
+Confint(LinearModel.1, level=0.95)
+```
+
+```{r}
+vif(LinearModel.1)
+```
+
+
+```{r}
+oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+```
+
+
+```{r}
+plot(LinearModel.1)
+```
+
+
+```{r}
+par(oldpar)
+```
+
+
+```{r}
+qqPlot(LinearModel.1, simulate=TRUE, id.method="y", id.n=2)
+```
+
+```{r}
+influencePlot(LinearModel.1, id.method="noteworthy", id.n=2)
+```
+
+```{r}
+library(effects, pos=16)
+```
+
+
+```{r}
+plot(allEffects(LinearModel.1))
+```
+

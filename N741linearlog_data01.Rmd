@@ -174,4 +174,34 @@ library(Rcmdr)
 
 ## wine data
 
+this dataset comes from UCI at [http://archive.ics.uci.edu/ml/datasets/Wine+Quality](http://archive.ics.uci.edu/ml/datasets/Wine+Quality). In the "Data Folder," there is a file with info on the variable names and dataset details. There is a file for red wine and another for white.
+
+The delimiter in this dataset is the semi-colon `;` so we'll need to use the generic read command `read_delim()` - this is tricky since the file extension is CSV but this file is NOT comma delimited. ALWAYS check the file - if you can look at it in notepad or other simple text viewer.
+
+```{r}
+redwine <- read_delim("winequality-red.csv",delim=";")
+
+hist(redwine$quality)
+
+summary(redwine)
+names(redwine)
+
+# Scatterplot Matrices from the car Package
+library(car)
+scatterplot.matrix(~quality+`fixed acidity`+`volatile acidity`+
+                     `citric acid`+`residual sugar`, data=redwine,
+  	main="xxx")
+
+library(Hmisc)
+rcorr(as.matrix(redwine), type="pearson")
+cor(redwine, use="complete.obs", method="kendall")
+
+cor(redwine, use="complete.obs", method="kendall") 
+
+library(corrgram)
+corrgram(redwine, order=TRUE, lower.panel=panel.shade,
+  upper.panel=panel.pie, text.panel=panel.txt,
+  main="xxx")
+
+```
 
